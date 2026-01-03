@@ -1,4 +1,4 @@
-package com.example.edusence_studio;
+package com.example.edusence_studio.utils;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;

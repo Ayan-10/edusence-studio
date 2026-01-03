@@ -1,5 +1,7 @@
-package com.example.edusence_studio.models;
+package com.example.edusence_studio.models.groups;
 
+import com.example.edusence_studio.models.BaseEntity;
+import com.example.edusence_studio.models.users.User;
 import jakarta.persistence.Entity;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;

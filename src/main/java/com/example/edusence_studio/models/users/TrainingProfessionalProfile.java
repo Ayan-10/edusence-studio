@@ -1,5 +1,6 @@
-package com.example.edusence_studio.models;
+package com.example.edusence_studio.models.users;
 
+import com.example.edusence_studio.models.BaseEntity;
 import jakarta.persistence.Entity;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;

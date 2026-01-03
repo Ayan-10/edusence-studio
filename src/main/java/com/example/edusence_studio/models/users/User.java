@@ -1,6 +1,7 @@
-package com.example.edusence_studio.models;
+package com.example.edusence_studio.models.users;
 
 import com.example.edusence_studio.enums.Role;
+import com.example.edusence_studio.models.BaseEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
