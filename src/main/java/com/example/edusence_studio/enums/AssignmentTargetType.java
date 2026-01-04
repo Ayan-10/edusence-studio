@@ -1,6 +1,6 @@
 package com.example.edusence_studio.enums;
 
-public enum Role {
+public enum AssignmentTargetType {
     TEACHER,
-    ADMIN, TRAINING_PROFESSIONAL
+    GROUP
 }

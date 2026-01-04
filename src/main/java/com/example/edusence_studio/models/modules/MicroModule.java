@@ -1,9 +1,7 @@
 package com.example.edusence_studio.models.modules;
 
 import com.example.edusence_studio.models.BaseEntity;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -12,15 +10,26 @@ import lombok.Setter;
 @Setter
 public class MicroModule extends BaseEntity {
 
-    @ManyToOne
-    private MainModule mainModule;
-
+    @Column(nullable = false)
     private String title;
-    private String competencyTag;
-    private String language;
-    private Integer estimatedMinutes;
 
-    @Column(columnDefinition = "TEXT")
-    private String content;
+    /**
+     * e.g. EN, HI, BN
+     */
+    @Column(nullable = false)
+    private String languageCode;
+
+    @Column(nullable = false)
+    private String fileUrl;
+
+    /**
+     * Optional tag to map with analytics problemTag
+     */
+    private String focusProblemTag;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "main_module_id", nullable = false)
+    private MainModule mainModule;
 }
+
 

@@ -2,28 +2,29 @@ package com.example.edusence_studio.models.feedbacks;
 
 import com.example.edusence_studio.models.BaseEntity;
 import com.example.edusence_studio.models.users.TeacherProfile;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
 @Entity
 @Getter
 @Setter
+@Table(
+        uniqueConstraints = @UniqueConstraint(
+                columnNames = {"teacher_id", "question_id"}
+        )
+)
 public class AssessmentResponse extends BaseEntity {
 
     @ManyToOne
-    private Assessment assessment;
-
-    @ManyToOne
-    private AssessmentQuestion question;
-
-    @ManyToOne
+    @JoinColumn(name = "teacher_id", nullable = false)
     private TeacherProfile teacher;
 
-    private Integer numericAnswer;
+    @ManyToOne
+    @JoinColumn(name = "question_id", nullable = false)
+    private AssessmentQuestion question;
 
-    @Column(columnDefinition = "TEXT")
-    private String textAnswer;
+    private Integer numericResponse;
+
+    private String textResponse;
 }
