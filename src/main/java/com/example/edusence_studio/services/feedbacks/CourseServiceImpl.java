@@ -32,6 +32,10 @@ public class CourseServiceImpl implements CourseService{
         return courseRepository.save(course);
     }
 
+    public java.util.List<Course> getAllCourses() {
+        return courseRepository.findAll();
+    }
+
     public Course getById(UUID courseId) {
         return courseRepository.findById(courseId)
                 .orElseThrow(() -> new RuntimeException("Course not found"));

@@ -25,9 +25,19 @@ public class FeedbackCycleController {
         return service.activateCycle(id);
     }
 
+    @GetMapping
+    public List<FeedbackCycle> getAllCycles() {
+        return service.getAllCycles();
+    }
+
     @GetMapping("/active")
     public List<FeedbackCycle> activeCycles() {
         return service.getActiveCycles();
+    }
+
+    @GetMapping("/{id}")
+    public FeedbackCycle getCycle(@PathVariable UUID id) {
+        return service.getCycleById(id);
     }
 }
 

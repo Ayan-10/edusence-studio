@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/micro-modules/assignments")
+@RequestMapping("/api/v1/micro-modules/assignments")
 @RequiredArgsConstructor
 public class MicroModuleAssignmentController {
 

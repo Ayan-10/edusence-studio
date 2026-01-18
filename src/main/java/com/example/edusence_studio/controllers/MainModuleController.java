@@ -37,5 +37,28 @@ public class MainModuleController {
     ) {
         return mainModuleService.splitIntoMicroModules(moduleId, requests);
     }
+
+    @PostMapping("/{moduleId}/split-ai")
+    public List<MicroModule> splitModuleWithAI(
+            @PathVariable UUID moduleId,
+            @RequestParam(defaultValue = "EN") String languageCode
+    ) {
+        return mainModuleService.splitModuleWithAI(moduleId, languageCode);
+    }
+
+    @GetMapping
+    public List<MainModule> getAllModules() {
+        return mainModuleService.getAllModules();
+    }
+
+    @GetMapping("/{id}")
+    public MainModule getModule(@PathVariable UUID id) {
+        return mainModuleService.getModuleById(id);
+    }
+
+    @GetMapping("/{id}/micro-modules")
+    public List<MicroModule> getMicroModules(@PathVariable UUID id) {
+        return mainModuleService.getMicroModulesByMainModuleId(id);
+    }
 }
 

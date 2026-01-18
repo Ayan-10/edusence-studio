@@ -11,5 +11,9 @@ public interface FeedbackCycleService {
 
     FeedbackCycle activateCycle(UUID cycleId);
 
+    List<FeedbackCycle> getAllCycles();
+
     List<FeedbackCycle> getActiveCycles();
+
+    FeedbackCycle getCycleById(UUID cycleId);
 }

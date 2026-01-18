@@ -11,6 +11,7 @@ import com.example.edusence_studio.models.modules.MicroModuleAssignment;
 import com.example.edusence_studio.models.modules.TeacherMicroModuleProgress;
 import com.example.edusence_studio.models.users.TeacherProfile;
 import com.example.edusence_studio.repositories.feedbacks.CourseRepository;
+import com.example.edusence_studio.repositories.groups.GroupTeacherMappingRepository;
 import com.example.edusence_studio.repositories.modules.TeacherMicroModuleProgressRepository;
 import com.example.edusence_studio.repositories.groups.GroupRepository;
 import com.example.edusence_studio.repositories.modules.MicroModuleAssignmentRepository;
@@ -32,19 +33,19 @@ public class MicroModuleAssignmentService {
     private final MicroModuleAssignmentRepository microModuleAssignmentRepository;
     private final CourseRepository courseRepository;
     private final TeacherMicroModuleProgressRepository teacherMicroModuleProgressRepository;
+    private final GroupTeacherMappingRepository groupTeacherMappingRepository;
 
     public void assignToTeacher(AssignMicroModuleToTeacherRequest request) {
 
+        TeacherProfile teacher = resolveTeacherProfile(request.teacherId());
+
         if (microModuleAssignmentRepository.existsByMicroModuleIdAndTeacherId(
-                request.microModuleId(), request.teacherId())) {
+                request.microModuleId(), teacher.getId())) {
             return;
         }
 
         MicroModule microModule = microModuleRepository.findById(request.microModuleId())
                 .orElseThrow(() -> new RuntimeException("MicroModule not found"));
-
-        TeacherProfile teacher = teacherProfileRepository.findById(request.teacherId())
-                .orElseThrow(() -> new RuntimeException("Teacher not found"));
 
         MicroModuleAssignment assignment = new MicroModuleAssignment();
         assignment.setMicroModule(microModule);
@@ -52,7 +53,7 @@ public class MicroModuleAssignmentService {
         assignment.setTargetType(AssignmentTargetType.TEACHER);
 
         teacherMicroModuleProgressRepository.findByTeacherIdAndMicroModuleId(
-                request.teacherId(), microModule.getId()
+                teacher.getId(), microModule.getId()
         ).orElseGet(() -> {
             TeacherMicroModuleProgress progress = new TeacherMicroModuleProgress();
             progress.setTeacher(teacher);
@@ -88,7 +89,34 @@ public class MicroModuleAssignmentService {
     }
 
     public List<MicroModuleAssignment> getAssignmentsForTeacher(UUID teacherId) {
-        return microModuleAssignmentRepository.findByTeacherId(teacherId);
+        TeacherProfile teacher = resolveTeacherProfile(teacherId);
+        List<MicroModuleAssignment> directAssignments =
+                microModuleAssignmentRepository.findByTeacherId(teacher.getId());
+
+        List<UUID> groupIds = groupTeacherMappingRepository.findByTeacherId(teacher.getId())
+                .stream()
+                .map(mapping -> mapping.getGroup().getId())
+                .toList();
+
+        java.util.List<MicroModuleAssignment> groupAssignments = new java.util.ArrayList<>();
+        for (UUID groupId : groupIds) {
+            groupAssignments.addAll(microModuleAssignmentRepository.findByGroupId(groupId));
+        }
+
+        java.util.Map<UUID, MicroModuleAssignment> deduped = new java.util.LinkedHashMap<>();
+        for (MicroModuleAssignment assignment : directAssignments) {
+            if (assignment.getMicroModule() != null) {
+                deduped.put(assignment.getMicroModule().getId(), assignment);
+            }
+        }
+        for (MicroModuleAssignment assignment : groupAssignments) {
+            if (assignment.getMicroModule() != null &&
+                    !deduped.containsKey(assignment.getMicroModule().getId())) {
+                deduped.put(assignment.getMicroModule().getId(), assignment);
+            }
+        }
+
+        return new java.util.ArrayList<>(deduped.values());
     }
 
     public List<MicroModuleAssignment> getAssignmentsForGroup(UUID groupId) {
@@ -125,5 +153,10 @@ public class MicroModuleAssignmentService {
         }
     }
 
+    private TeacherProfile resolveTeacherProfile(UUID teacherIdOrUserId) {
+        return teacherProfileRepository.findById(teacherIdOrUserId)
+                .or(() -> teacherProfileRepository.findByUserId(teacherIdOrUserId))
+                .orElseThrow(() -> new RuntimeException("Teacher not found"));
+    }
 }
 

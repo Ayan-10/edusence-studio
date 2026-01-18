@@ -45,8 +45,7 @@ public class GroupServiceImpl implements GroupService {
         Group group = groupRepository.findById(groupId)
                 .orElseThrow(() -> new RuntimeException("Group not found"));
 
-        TeacherProfile teacher = teacherRepository.findById(teacherId)
-                .orElseThrow(() -> new RuntimeException("Teacher not found"));
+        TeacherProfile teacher = resolveTeacherProfile(teacherId);
 
         GroupMember mapping = new GroupMember();
         mapping.setGroup(group);
@@ -58,18 +57,31 @@ public class GroupServiceImpl implements GroupService {
     @Override
     public void removeTeacherFromGroup(UUID groupId, UUID teacherId) {
 
+        TeacherProfile teacher = resolveTeacherProfile(teacherId);
         mappingRepository.findByGroupId(groupId).stream()
-                .filter(m -> m.getTeacher().getId().equals(teacherId))
+                .filter(m -> m.getTeacher().getId().equals(teacher.getId()))
                 .findFirst()
                 .ifPresent(mappingRepository::delete);
     }
 
     @Override
+    public List<Group> getAllGroups() {
+        return groupRepository.findAll();
+    }
+
+    @Override
     public List<Group> getGroupsForTeacher(UUID teacherId) {
 
-        return mappingRepository.findByTeacherId(teacherId).stream()
+        TeacherProfile teacher = resolveTeacherProfile(teacherId);
+        return mappingRepository.findByTeacherId(teacher.getId()).stream()
                 .map(GroupMember::getGroup)
                 .toList();
+    }
+
+    private TeacherProfile resolveTeacherProfile(UUID teacherIdOrUserId) {
+        return teacherRepository.findById(teacherIdOrUserId)
+                .or(() -> teacherRepository.findByUserId(teacherIdOrUserId))
+                .orElseThrow(() -> new RuntimeException("Teacher not found"));
     }
 }
 

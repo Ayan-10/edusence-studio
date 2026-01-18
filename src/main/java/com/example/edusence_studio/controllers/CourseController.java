@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/courses")
+@RequestMapping("/api/v1/courses")
 @RequiredArgsConstructor
 public class CourseController {
 
@@ -20,6 +20,16 @@ public class CourseController {
     @PostMapping
     public Course createCourse(@RequestBody CreateCourseRequest request) {
         return courseService.createCourse(request);
+    }
+
+    @GetMapping
+    public java.util.List<Course> getAllCourses() {
+        return courseService.getAllCourses();
+    }
+
+    @GetMapping("/{courseId}")
+    public Course getCourse(@PathVariable UUID courseId) {
+        return courseService.getById(courseId);
     }
 
     @PostMapping("/{courseId}/assign/teacher/{teacherId}")

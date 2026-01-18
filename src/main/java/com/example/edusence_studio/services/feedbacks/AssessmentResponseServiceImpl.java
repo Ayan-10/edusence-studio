@@ -26,8 +26,7 @@ public class AssessmentResponseServiceImpl
                                Integer numeric,
                                String text) {
 
-        TeacherProfile teacher = teacherRepo.findById(teacherId)
-                .orElseThrow(() -> new RuntimeException("Teacher not found"));
+        TeacherProfile teacher = resolveTeacherProfile(teacherId);
 
         AssessmentQuestion question = questionRepo.findById(questionId)
                 .orElseThrow(() -> new RuntimeException("Question not found"));
@@ -41,5 +40,11 @@ public class AssessmentResponseServiceImpl
         responseRepo.save(response);
 
         // 🔮 FUTURE: publish event to analytics system
+    }
+
+    private TeacherProfile resolveTeacherProfile(UUID teacherIdOrUserId) {
+        return teacherRepo.findById(teacherIdOrUserId)
+                .or(() -> teacherRepo.findByUserId(teacherIdOrUserId))
+                .orElseThrow(() -> new RuntimeException("Teacher not found"));
     }
 }

@@ -14,6 +14,8 @@ public interface GroupService {
 
     void removeTeacherFromGroup(UUID groupId, UUID teacherId);
 
+    List<Group> getAllGroups();
+
     List<Group> getGroupsForTeacher(UUID teacherId);
 }
 

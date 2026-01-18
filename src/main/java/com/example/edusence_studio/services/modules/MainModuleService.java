@@ -21,5 +21,13 @@ public interface MainModuleService {
             UUID mainModuleId,
             List<CreateMicroModuleRequest> microModules
     );
+
+    List<MicroModule> splitModuleWithAI(UUID mainModuleId, String languageCode);
+
+    List<MainModule> getAllModules();
+
+    MainModule getModuleById(UUID moduleId);
+
+    List<MicroModule> getMicroModulesByMainModuleId(UUID mainModuleId);
 }
 

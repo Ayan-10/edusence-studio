@@ -21,6 +21,11 @@ public class GroupController {
         return groupService.createGroup(request);
     }
 
+    @GetMapping
+    public List<Group> getAllGroups() {
+        return groupService.getAllGroups();
+    }
+
     @PostMapping("/{groupId}/teachers/{teacherId}")
     public void addTeacher(
             @PathVariable UUID groupId,

@@ -30,11 +30,22 @@ public class FeedbackCycleServiceImpl implements FeedbackCycleService {
     }
 
     @Override
+    public List<FeedbackCycle> getAllCycles() {
+        return repository.findAll();
+    }
+
+    @Override
     public List<FeedbackCycle> getActiveCycles() {
         return repository.findAll()
                 .stream()
                 .filter(c -> c.getStatus() == FeedbackCycleStatus.ACTIVE)
                 .toList();
+    }
+
+    @Override
+    public FeedbackCycle getCycleById(UUID cycleId) {
+        return repository.findById(cycleId)
+                .orElseThrow(() -> new RuntimeException("Feedback cycle not found"));
     }
 }
 

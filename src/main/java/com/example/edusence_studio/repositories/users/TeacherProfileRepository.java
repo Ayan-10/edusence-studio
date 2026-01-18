@@ -7,4 +7,5 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import java.util.UUID;
 
 public interface TeacherProfileRepository  extends JpaRepository<TeacherProfile, UUID>, JpaSpecificationExecutor<TeacherProfile> {
+    java.util.Optional<TeacherProfile> findByUserId(UUID userId);
 }
