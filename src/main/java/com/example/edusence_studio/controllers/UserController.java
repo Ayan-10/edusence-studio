@@ -4,7 +4,7 @@ import com.example.edusence_studio.dtos.CreateUserRequest;
 import com.example.edusence_studio.dtos.UserResponse;
 import com.example.edusence_studio.services.users.UserService;
 import lombok.RequiredArgsConstructor;
-import org.apache.coyote.BadRequestException;
+import com.example.edusence_studio.exceptions.BadRequestException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 

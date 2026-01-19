@@ -31,8 +31,15 @@ export const moduleService = {
     return response.data;
   },
 
-  splitModuleWithAI: async (moduleId, languageCode = 'EN') => {
-    const response = await api.post(`/modules/${moduleId}/split-ai?languageCode=${languageCode}`);
+  splitModuleWithAI: async (moduleId, languageCode = 'EN', problemAreas = null, numberOfModules = null) => {
+    const params = new URLSearchParams({ languageCode });
+    if (problemAreas && problemAreas.length > 0) {
+      problemAreas.forEach(area => params.append('problemAreas', area));
+    }
+    if (numberOfModules) {
+      params.append('numberOfModules', numberOfModules.toString());
+    }
+    const response = await api.post(`/modules/${moduleId}/split-ai?${params.toString()}`);
     return response.data;
   },
 
@@ -53,5 +60,13 @@ export const moduleService = {
       microModuleId,
       groupId,
     });
+  },
+
+  deleteModule: async (moduleId) => {
+    await api.delete(`/modules/${moduleId}`);
+  },
+
+  deleteMicroModule: async (microModuleId) => {
+    await api.delete(`/modules/micro-modules/${microModuleId}`);
   },
 };

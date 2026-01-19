@@ -22,12 +22,16 @@ public interface MainModuleService {
             List<CreateMicroModuleRequest> microModules
     );
 
-    List<MicroModule> splitModuleWithAI(UUID mainModuleId, String languageCode);
+    List<MicroModule> splitModuleWithAI(UUID mainModuleId, String languageCode, List<String> problemAreas, Integer numberOfModules);
 
     List<MainModule> getAllModules();
 
     MainModule getModuleById(UUID moduleId);
 
     List<MicroModule> getMicroModulesByMainModuleId(UUID mainModuleId);
+
+    void deleteModule(UUID moduleId);
+
+    void deleteMicroModule(UUID microModuleId);
 }
 

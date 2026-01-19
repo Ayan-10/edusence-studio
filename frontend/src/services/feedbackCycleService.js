@@ -25,4 +25,8 @@ export const feedbackCycleService = {
     const response = await api.post(`/feedback-cycles/${id}/activate`);
     return response.data;
   },
+
+  deleteCycle: async (id) => {
+    await api.delete(`/feedback-cycles/${id}`);
+  },
 };

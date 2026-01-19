@@ -39,5 +39,10 @@ public class FeedbackCycleController {
     public FeedbackCycle getCycle(@PathVariable UUID id) {
         return service.getCycleById(id);
     }
+
+    @DeleteMapping("/{id}")
+    public void deleteCycle(@PathVariable UUID id) {
+        service.deleteCycle(id);
+    }
 }
 

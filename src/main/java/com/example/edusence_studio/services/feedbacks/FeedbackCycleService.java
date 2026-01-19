@@ -16,4 +16,6 @@ public interface FeedbackCycleService {
     List<FeedbackCycle> getActiveCycles();
 
     FeedbackCycle getCycleById(UUID cycleId);
+
+    void deleteCycle(UUID cycleId);
 }

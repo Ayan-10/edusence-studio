@@ -2,6 +2,7 @@ package com.example.edusence_studio.models.modules;
 
 import com.example.edusence_studio.models.BaseEntity;
 import com.example.edusence_studio.models.users.User;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -12,6 +13,7 @@ import java.util.List;
 @Entity
 @Getter
 @Setter
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class MainModule extends BaseEntity {
 
     @Column(nullable = false)

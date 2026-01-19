@@ -20,4 +20,12 @@ export const analyticsService = {
     const response = await api.get('/analytics/overview');
     return response.data;
   },
+
+  getTopProblems: async (limit = 10, filterType = null, filterValue = null) => {
+    const params = new URLSearchParams({ limit: limit.toString() });
+    if (filterType) params.append('filterType', filterType);
+    if (filterValue) params.append('filterValue', filterValue);
+    const response = await api.get(`/analytics/top-problems?${params.toString()}`);
+    return response.data;
+  },
 };

@@ -30,9 +30,38 @@ Edusence Studio provides:
 
 ## Getting Started
 
-### One-Command Docker Setup (Recommended for Hackathon)
+### One-Command Docker Setup 
 
-Prerequisite: Docker + Docker Compose (install Docker Desktop)
+Prerequisite: Docker + Docker Compose (Install Docker Desktop)
+
+#### Step 1: Create Environment File
+
+**IMPORTANT:** Before running the project, you must create a `.env` file in the root directory with your sensitive credentials. This file is gitignored and will not be committed to the repository.
+
+1. Copy the example file:
+   ```bash
+   cp .env.example .env
+   ```
+
+2. Edit `.env` and add your actual values for the following variables:
+
+   **Database Configuration:**
+   - `POSTGRES_DB` - PostgreSQL database name
+   - `POSTGRES_USER` - PostgreSQL username
+   - `POSTGRES_PASSWORD` - PostgreSQL password
+
+   **AWS S3 Configuration (required for PDF uploads):**
+   - `AWS_S3_REGION` - AWS S3 region (e.g., eu-north-1, us-east-1)
+   - `AWS_S3_BUCKET` - AWS S3 bucket name
+   - `AWS_S3_ACCESS_KEY` - AWS access key ID
+   - `AWS_S3_SECRET_KEY` - AWS secret access key
+
+   **Google Gemini API (optional, for AI module splitting):**
+   - `GEMINI_API_KEY` - Get your free API key from: https://makersuite.google.com/app/apikey
+   
+   **Note:** Without the Gemini API key, the AI splitting will use a fallback mock implementation. The free tier allows 15 requests/minute and 1,500 requests/day - perfect for hackathon demos!
+
+#### Step 2: Run the Project
 
 ```bash
 docker compose up --build
@@ -43,15 +72,7 @@ That is the only command needed. No Java, Node, or other tools are required.
 - Frontend: `http://localhost:5173`
 - Backend API: `http://localhost:8080/api/v1`
 
-#### S3 Uploads (Optional)
-The backend requires AWS S3 config values at startup. In `docker-compose.yml`, update these:
-
-- `AWS_S3_REGION`
-- `AWS_S3_BUCKET`
-- `AWS_S3_ACCESS_KEY`
-- `AWS_S3_SECRET_KEY`
-
-If you don't need PDF uploads, the app will still run, but S3 upload calls will fail until valid credentials are set.
+**Security Note:** All sensitive information (database credentials, AWS keys, API keys) must be stored in the `.env` file, which is automatically gitignored. Never commit the `.env` file to version control.
 
 ### Local Development (Optional)
 
