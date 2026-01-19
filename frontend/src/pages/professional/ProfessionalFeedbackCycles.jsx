@@ -4,7 +4,8 @@ import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
 import Input from '../../components/common/Input';
 import { feedbackCycleService } from '../../services/feedbackCycleService';
-import { Calendar, Plus, CheckCircle, XCircle } from 'lucide-react';
+import { Calendar, Plus, CheckCircle, XCircle, Trash2, Loader2 } from 'lucide-react';
+import Toast from '../../components/common/Toast';
 
 const ProfessionalFeedbackCycles = () => {
   const [cycles, setCycles] = useState([]);
@@ -16,6 +17,8 @@ const ProfessionalFeedbackCycles = () => {
     endDate: '',
   });
   const [loading, setLoading] = useState(true);
+  const [deletingCycle, setDeletingCycle] = useState(null);
+  const [toast, setToast] = useState(null);
 
   useEffect(() => {
     fetchCycles();
@@ -48,10 +51,31 @@ const ProfessionalFeedbackCycles = () => {
   const handleActivate = async (id) => {
     try {
       await feedbackCycleService.activateCycle(id);
+      setToast({ message: 'Feedback cycle activated successfully!', type: 'success' });
       fetchCycles();
     } catch (error) {
       console.error('Error activating cycle:', error);
-      alert('Failed to activate cycle');
+      const errorMessage = error.response?.data?.message || error.message || 'Failed to activate cycle';
+      setToast({ message: errorMessage, type: 'error' });
+    }
+  };
+
+  const handleDeleteCycle = async (cycleId, cycleName) => {
+    if (!window.confirm(`Are you sure you want to delete "${cycleName}"? This will also delete all associated assessments. This action cannot be undone.`)) {
+      return;
+    }
+
+    setDeletingCycle(cycleId);
+    try {
+      await feedbackCycleService.deleteCycle(cycleId);
+      setToast({ message: 'Feedback cycle deleted successfully!', type: 'success' });
+      fetchCycles();
+    } catch (error) {
+      console.error('Error deleting cycle:', error);
+      const errorMessage = error.response?.data?.message || error.message || 'Failed to delete feedback cycle';
+      setToast({ message: errorMessage, type: 'error' });
+    } finally {
+      setDeletingCycle(null);
     }
   };
 
@@ -67,6 +91,13 @@ const ProfessionalFeedbackCycles = () => {
 
   return (
     <ProfessionalLayout>
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
       <div className="px-4 sm:px-0">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
           <h2 className="text-2xl font-bold text-gray-900">Feedback Cycles</h2>
@@ -150,11 +181,31 @@ const ProfessionalFeedbackCycles = () => {
                     {new Date(cycle.endDate).toLocaleDateString()}
                   </div>
                 </div>
-                {cycle.status !== 'ACTIVE' && (
-                  <Button onClick={() => handleActivate(cycle.id)} variant="secondary">
-                    Activate
+                <div className="flex flex-col sm:flex-row gap-2">
+                  {cycle.status !== 'ACTIVE' && (
+                    <Button onClick={() => handleActivate(cycle.id)} variant="secondary" disabled={deletingCycle === cycle.id}>
+                      Activate
+                    </Button>
+                  )}
+                  <Button
+                    variant="outline"
+                    onClick={() => handleDeleteCycle(cycle.id, cycle.name)}
+                    disabled={deletingCycle === cycle.id}
+                    className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-300"
+                  >
+                    {deletingCycle === cycle.id ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Deleting...
+                      </>
+                    ) : (
+                      <>
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Delete
+                      </>
+                    )}
                   </Button>
-                )}
+                </div>
               </div>
             </Card>
           ))}

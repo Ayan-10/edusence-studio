@@ -5,6 +5,7 @@ import com.example.edusence_studio.models.feedbacks.FeedbackCycle;
 import com.example.edusence_studio.repositories.feedbacks.FeedbackCycleRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
@@ -36,16 +37,21 @@ public class FeedbackCycleServiceImpl implements FeedbackCycleService {
 
     @Override
     public List<FeedbackCycle> getActiveCycles() {
-        return repository.findAll()
-                .stream()
-                .filter(c -> c.getStatus() == FeedbackCycleStatus.ACTIVE)
-                .toList();
+        return repository.findByStatus(FeedbackCycleStatus.ACTIVE);
     }
 
     @Override
     public FeedbackCycle getCycleById(UUID cycleId) {
         return repository.findById(cycleId)
                 .orElseThrow(() -> new RuntimeException("Feedback cycle not found"));
+    }
+
+    @Override
+    @Transactional
+    public void deleteCycle(UUID cycleId) {
+        FeedbackCycle cycle = repository.findById(cycleId)
+                .orElseThrow(() -> new RuntimeException("Feedback cycle not found"));
+        repository.delete(cycle);
     }
 }
 

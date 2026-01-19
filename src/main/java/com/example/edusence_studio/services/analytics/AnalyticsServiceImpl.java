@@ -6,6 +6,7 @@ import com.example.edusence_studio.models.groups.GroupMember;
 import com.example.edusence_studio.models.users.TeacherProfile;
 import com.example.edusence_studio.repositories.feedbacks.AssessmentResponseRepository;
 import com.example.edusence_studio.repositories.groups.GroupRepository;
+import com.example.edusence_studio.repositories.modules.MicroModuleAssignmentRepository;
 import com.example.edusence_studio.repositories.users.TeacherProfileRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -20,6 +21,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
     private final AssessmentResponseRepository assessmentResponseRepository;
     private final TeacherProfileRepository teacherProfileRepository;
     private final GroupRepository groupRepository;
+    private final MicroModuleAssignmentRepository microModuleAssignmentRepository;
 
     @Override
     public Map<String, Object> getTeacherAnalytics(UUID teacherId) {
@@ -204,5 +206,110 @@ public class AnalyticsServiceImpl implements AnalyticsService {
                     return tagData;
                 })
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public Map<String, Object> getTopProblems(int limit, String filterType, String filterValue) {
+        List<AssessmentResponse> responses;
+
+        if (filterType == null || "all".equalsIgnoreCase(filterType)) {
+            // Overall top problems
+            responses = assessmentResponseRepository.findAll();
+        } else if ("cluster".equalsIgnoreCase(filterType)) {
+            // Filter by cluster name
+            Set<UUID> teacherIds = teacherProfileRepository.findAll().stream()
+                    .filter(t -> filterValue != null && filterValue.equals(t.getClusterName()))
+                    .map(TeacherProfile::getId)
+                    .collect(Collectors.toSet());
+            responses = assessmentResponseRepository.findAll().stream()
+                    .filter(r -> teacherIds.contains(r.getTeacher().getId()))
+                    .toList();
+        } else if ("group".equalsIgnoreCase(filterType)) {
+            // Filter by group ID
+            Group group = groupRepository.findById(UUID.fromString(filterValue))
+                    .orElseThrow(() -> new RuntimeException("Group not found"));
+            Set<UUID> teacherIds = group.getTeachers().stream()
+                    .map(GroupMember::getTeacher)
+                    .map(TeacherProfile::getId)
+                    .collect(Collectors.toSet());
+            responses = assessmentResponseRepository.findAll().stream()
+                    .filter(r -> teacherIds.contains(r.getTeacher().getId()))
+                    .toList();
+        } else if ("teacher".equalsIgnoreCase(filterType)) {
+            // Filter by teacher ID
+            TeacherProfile teacher = resolveTeacherProfile(UUID.fromString(filterValue));
+            responses = assessmentResponseRepository.findAll().stream()
+                    .filter(r -> r.getTeacher().getId().equals(teacher.getId()))
+                    .toList();
+        } else if ("language".equalsIgnoreCase(filterType)) {
+            // Filter by language - find teachers with modules in that language
+            Set<UUID> teacherIds = new HashSet<>();
+            
+            // Direct teacher assignments
+            microModuleAssignmentRepository.findAll().stream()
+                    .filter(a -> a.getMicroModule() != null && 
+                                filterValue != null && 
+                                filterValue.equals(a.getMicroModule().getLanguageCode()) &&
+                                a.getTeacher() != null)
+                    .forEach(a -> teacherIds.add(a.getTeacher().getId()));
+            
+            // Group assignments - get all teachers in groups that have modules in this language
+            microModuleAssignmentRepository.findAll().stream()
+                    .filter(a -> a.getMicroModule() != null && 
+                                filterValue != null && 
+                                filterValue.equals(a.getMicroModule().getLanguageCode()) &&
+                                a.getGroup() != null)
+                    .forEach(a -> {
+                        a.getGroup().getTeachers().forEach(member -> {
+                            if (member.getTeacher() != null && member.getTeacher().getId() != null) {
+                                teacherIds.add(member.getTeacher().getId());
+                            }
+                        });
+                    });
+            
+            responses = assessmentResponseRepository.findAll().stream()
+                    .filter(r -> r.getTeacher() != null && teacherIds.contains(r.getTeacher().getId()))
+                    .toList();
+        } else {
+            responses = assessmentResponseRepository.findAll();
+        }
+
+        // Count problems by tag
+        Map<String, Long> problemTagCounts = responses.stream()
+                .filter(r -> r.getQuestion() != null && r.getQuestion().getProblemTag() != null)
+                .collect(Collectors.groupingBy(
+                        r -> r.getQuestion().getProblemTag(),
+                        Collectors.counting()
+                ));
+
+        // Calculate averages for numeric responses
+        Map<String, Double> problemTagAverages = responses.stream()
+                .filter(r -> r.getQuestion() != null && 
+                            r.getQuestion().getProblemTag() != null && 
+                            r.getNumericResponse() != null)
+                .collect(Collectors.groupingBy(
+                        r -> r.getQuestion().getProblemTag(),
+                        Collectors.averagingInt(AssessmentResponse::getNumericResponse)
+                ));
+
+        // Get top N problems
+        List<Map<String, Object>> topProblems = problemTagCounts.entrySet().stream()
+                .sorted(Map.Entry.<String, Long>comparingByValue().reversed())
+                .limit(limit)
+                .map(entry -> {
+                    Map<String, Object> problemData = new HashMap<>();
+                    problemData.put("problemTag", entry.getKey());
+                    problemData.put("count", entry.getValue());
+                    problemData.put("averageScore", problemTagAverages.getOrDefault(entry.getKey(), 0.0));
+                    return problemData;
+                })
+                .collect(Collectors.toList());
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("topProblems", topProblems);
+        result.put("filterType", filterType);
+        result.put("filterValue", filterValue);
+        result.put("totalResponses", responses.size());
+        return result;
     }
 }

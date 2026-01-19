@@ -1,6 +1,6 @@
 package com.example.edusence_studio.utils;
 
-import org.apache.coyote.BadRequestException;
+import com.example.edusence_studio.exceptions.BadRequestException;
 import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

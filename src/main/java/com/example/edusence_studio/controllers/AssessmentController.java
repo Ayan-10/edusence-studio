@@ -10,6 +10,7 @@ import com.example.edusence_studio.repositories.feedbacks.AssessmentRepository;
 import com.example.edusence_studio.repositories.feedbacks.FeedbackCycleRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -78,10 +79,72 @@ public class AssessmentController {
 
     @GetMapping("/{id}/questions")
     public ResponseEntity<List<AssessmentQuestion>> getAssessmentQuestions(@PathVariable UUID id) {
-        List<AssessmentQuestion> questions = questionRepository.findAll()
-                .stream()
-                .filter(q -> q.getAssessment().getId().equals(id))
-                .toList();
+        List<AssessmentQuestion> questions = questionRepository.findByAssessmentId(id);
         return ResponseEntity.ok(questions);
+    }
+
+    @PutMapping("/{id}")
+    @Transactional
+    public ResponseEntity<Assessment> updateAssessment(
+            @PathVariable UUID id,
+            @RequestBody CreateAssessmentRequest request
+    ) {
+        Assessment assessment = assessmentRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Assessment not found"));
+
+        FeedbackCycle cycle = feedbackCycleRepository.findById(request.feedbackCycleId())
+                .orElseThrow(() -> new RuntimeException("Feedback cycle not found"));
+
+        assessment.setTitle(request.title());
+        assessment.setFeedbackCycle(cycle);
+
+        AssignmentTargetType targetType =
+                request.assignmentTargetType() == null
+                        ? AssignmentTargetType.ALL
+                        : request.assignmentTargetType();
+        assessment.setAssignmentTargetType(targetType);
+        assessment.setAssignmentTargetId(request.assignmentTargetId());
+        if (targetType != AssignmentTargetType.ALL && request.assignmentTargetId() == null) {
+            throw new RuntimeException("Assignment target id is required");
+        }
+
+        // Delete existing questions
+        questionRepository.deleteAll(assessment.getQuestions());
+
+        // Create new questions
+        List<AssessmentQuestion> questions = new ArrayList<>();
+        if (request.questions() != null) {
+            for (var questionRequest : request.questions()) {
+                AssessmentQuestion question = new AssessmentQuestion();
+                question.setAssessment(assessment);
+                question.setQuestionText(questionRequest.questionText());
+                question.setQuestionType(questionRequest.questionType());
+                question.setMaxScore(questionRequest.maxScore());
+                question.setProblemTag(questionRequest.problemTag());
+                questions.add(question);
+            }
+        }
+        assessment.setQuestions(questions);
+
+        Assessment saved = assessmentRepository.save(assessment);
+        return ResponseEntity.ok(saved);
+    }
+
+    @DeleteMapping("/{id}")
+    @Transactional
+    public ResponseEntity<Void> deleteAssessment(@PathVariable UUID id) {
+        Assessment assessment = assessmentRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Assessment not found"));
+        assessmentRepository.delete(assessment);
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/questions/{questionId}")
+    @Transactional
+    public ResponseEntity<Void> deleteQuestion(@PathVariable UUID questionId) {
+        AssessmentQuestion question = questionRepository.findById(questionId)
+                .orElseThrow(() -> new RuntimeException("Question not found"));
+        questionRepository.delete(question);
+        return ResponseEntity.noContent().build();
     }
 }

@@ -29,4 +29,17 @@ export const assessmentService = {
       textResponse,
     });
   },
+
+  updateAssessment: async (id, assessmentData) => {
+    const response = await api.put(`/assessments/${id}`, assessmentData);
+    return response.data;
+  },
+
+  deleteAssessment: async (id) => {
+    await api.delete(`/assessments/${id}`);
+  },
+
+  deleteQuestion: async (questionId) => {
+    await api.delete(`/assessments/questions/${questionId}`);
+  },
 };
