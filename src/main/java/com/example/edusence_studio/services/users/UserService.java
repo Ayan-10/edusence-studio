@@ -2,7 +2,7 @@ package com.example.edusence_studio.services.users;
 
 import com.example.edusence_studio.dtos.CreateUserRequest;
 import com.example.edusence_studio.dtos.UserResponse;
-import org.apache.coyote.BadRequestException;
+import com.example.edusence_studio.exceptions.BadRequestException;
 
 import java.util.List;
 import java.util.UUID;

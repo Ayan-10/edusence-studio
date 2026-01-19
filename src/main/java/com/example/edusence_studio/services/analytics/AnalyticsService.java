@@ -8,4 +8,5 @@ public interface AnalyticsService {
     Map<String, Object> getGroupAnalytics(UUID groupId);
     Map<String, Object> getProblemTagAnalytics();
     Map<String, Object> getOverviewAnalytics();
+    Map<String, Object> getTopProblems(int limit, String filterType, String filterValue);
 }

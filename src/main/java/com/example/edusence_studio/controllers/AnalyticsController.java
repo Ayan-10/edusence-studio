@@ -34,4 +34,13 @@ public class AnalyticsController {
     public ResponseEntity<Map<String, Object>> getOverviewAnalytics() {
         return ResponseEntity.ok(analyticsService.getOverviewAnalytics());
     }
+
+    @GetMapping("/top-problems")
+    public ResponseEntity<Map<String, Object>> getTopProblems(
+            @RequestParam(defaultValue = "10") int limit,
+            @RequestParam(required = false) String filterType,
+            @RequestParam(required = false) String filterValue
+    ) {
+        return ResponseEntity.ok(analyticsService.getTopProblems(limit, filterType, filterValue));
+    }
 }

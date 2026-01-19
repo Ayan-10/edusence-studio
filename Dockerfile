@@ -1,7 +1,6 @@
 FROM gradle:8.5-jdk17 AS build
 WORKDIR /app
-COPY build.gradle settings.gradle gradlew gradlew.bat /app/
-COPY gradle /app/gradle
+COPY build.gradle settings.gradle /app/
 COPY src /app/src
 RUN gradle clean bootJar -x test --no-daemon
 

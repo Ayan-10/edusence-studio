@@ -1,4 +1,4 @@
-const Input = ({ label, type = 'text', name, value, onChange, placeholder, error, required = false, className = '' }) => {
+const Input = ({ label, type = 'text', name, value, onChange, placeholder, error, required = false, disabled = false, className = '' }) => {
   return (
     <div className={`mb-4 ${className}`}>
       {label && (
@@ -14,9 +14,10 @@ const Input = ({ label, type = 'text', name, value, onChange, placeholder, error
         onChange={onChange}
         placeholder={placeholder}
         required={required}
+        disabled={disabled}
         className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 ${
           error ? 'border-red-500' : 'border-gray-300'
-        }`}
+        } ${disabled ? 'opacity-50 cursor-not-allowed bg-gray-100' : ''}`}
       />
       {error && <p className="mt-1 text-sm text-red-500">{error}</p>}
     </div>

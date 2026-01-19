@@ -4,6 +4,8 @@ import TeacherLayout from '../../components/teacher/TeacherLayout';
 import Card from '../../components/common/Card';
 import { assessmentService } from '../../services/assessmentService';
 import { moduleService } from '../../services/moduleService';
+import { feedbackCycleService } from '../../services/feedbackCycleService';
+import { groupService } from '../../services/groupService';
 import { useAuth } from '../../context/AuthContext';
 import { FileText, BookOpen, BarChart3 } from 'lucide-react';
 
@@ -18,14 +20,37 @@ const TeacherDashboard = () => {
 
   useEffect(() => {
     const fetchStats = async () => {
+      if (!user?.id) {
+        setLoading(false);
+        return;
+      }
+
       try {
-        const [assessments, assignments] = await Promise.all([
-          assessmentService.getAllAssessments(),
-          user?.id ? moduleService.getTeacherAssignments(user.id) : Promise.resolve([]),
+        const [cycles, groups, assignments] = await Promise.all([
+          feedbackCycleService.getActiveCycles(),
+          groupService.getGroupsForTeacher(user.id),
+          moduleService.getTeacherAssignments(user.id),
         ]);
 
+        // Get all assessments from active cycles
+        const allAssessments = cycles.flatMap(cycle => cycle.assessments || []);
+        const teacherGroupIds = new Set(groups.map(g => g.id));
+
+        // Filter eligible assessments
+        const eligibleAssessments = allAssessments.filter((assessment) => {
+          const targetType = assessment.assignmentTargetType || 'ALL';
+          if (targetType === 'ALL') return true;
+          if (targetType === 'TEACHER') {
+            return assessment.assignmentTargetId === user.id;
+          }
+          if (targetType === 'GROUP') {
+            return teacherGroupIds.has(assessment.assignmentTargetId);
+          }
+          return false;
+        });
+
         setStats({
-          activeAssessments: assessments.length,
+          activeAssessments: eligibleAssessments.length,
           assignedModules: assignments.length,
           progress: assignments.length > 0 ? Math.floor(Math.random() * 40 + 60) : 0, // Mock progress
         });

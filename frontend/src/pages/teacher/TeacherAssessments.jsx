@@ -51,11 +51,16 @@ const TeacherAssessments = () => {
   const handleTakeAssessment = async (assessmentId) => {
     try {
       const questionsData = await assessmentService.getAssessmentQuestions(assessmentId);
+      if (!questionsData || questionsData.length === 0) {
+        alert('No questions found for this assessment. Please contact the administrator.');
+        return;
+      }
       setQuestions(questionsData);
       setSelectedAssessment(assessmentId);
       setResponses({});
     } catch (error) {
       console.error('Error fetching questions:', error);
+      alert('Failed to load assessment questions. Please try again.');
     }
   };
 
@@ -71,7 +76,7 @@ const TeacherAssessments = () => {
       for (const [questionId, value] of Object.entries(responses)) {
         const question = questions.find((q) => q.id === questionId);
         if (question) {
-          const numericResponse = question.questionType === 'NUMERIC' ? parseInt(value) : null;
+          const numericResponse = question.questionType === 'SCALE' ? parseInt(value) : null;
           const textResponse = question.questionType === 'TEXT' ? value : null;
 
           await assessmentService.submitResponse(
@@ -121,14 +126,17 @@ const TeacherAssessments = () => {
           </Button>
 
           <Card title="Assessment Questions">
-            {questions.map((question) => (
+            {questions.length === 0 ? (
+              <p className="text-gray-600 text-center py-4">No questions found for this assessment.</p>
+            ) : (
+              questions.map((question) => (
               <div key={question.id} className="mb-6 pb-6 border-b last:border-b-0">
                 <h3 className="font-semibold text-gray-900 mb-2">{question.questionText}</h3>
                 <p className="text-sm text-gray-500 mb-3">
                   Problem Tag: {question.problemTag} | Type: {question.questionType}
                 </p>
 
-                {question.questionType === 'NUMERIC' ? (
+                {question.questionType === 'SCALE' ? (
                   <Input
                     type="number"
                     value={responses[question.id] || ''}
@@ -147,11 +155,14 @@ const TeacherAssessments = () => {
                   />
                 )}
               </div>
-            ))}
+              ))
+            )}
 
-            <Button onClick={handleSubmit} disabled={submitting} className="w-full">
-              {submitting ? 'Submitting...' : 'Submit Assessment'}
-            </Button>
+            {questions.length > 0 && (
+              <Button onClick={handleSubmit} disabled={submitting} className="w-full mt-4">
+                {submitting ? 'Submitting...' : 'Submit Assessment'}
+              </Button>
+            )}
           </Card>
         </div>
       </TeacherLayout>

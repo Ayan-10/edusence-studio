@@ -41,9 +41,16 @@ public class MainModuleController {
     @PostMapping("/{moduleId}/split-ai")
     public List<MicroModule> splitModuleWithAI(
             @PathVariable UUID moduleId,
-            @RequestParam(defaultValue = "EN") String languageCode
+            @RequestParam(defaultValue = "EN") String languageCode,
+            @RequestParam(required = false) List<String> problemAreas,
+            @RequestParam(required = false) Integer numberOfModules
     ) {
-        return mainModuleService.splitModuleWithAI(moduleId, languageCode);
+        System.out.println("=== SPLIT MODULE WITH AI ===");
+        System.out.println("Module ID: " + moduleId);
+        System.out.println("Language Code: " + languageCode);
+        System.out.println("Problem Areas: " + problemAreas);
+        System.out.println("Number of Modules: " + numberOfModules);
+        return mainModuleService.splitModuleWithAI(moduleId, languageCode, problemAreas, numberOfModules);
     }
 
     @GetMapping
@@ -59,6 +66,16 @@ public class MainModuleController {
     @GetMapping("/{id}/micro-modules")
     public List<MicroModule> getMicroModules(@PathVariable UUID id) {
         return mainModuleService.getMicroModulesByMainModuleId(id);
+    }
+
+    @DeleteMapping("/{id}")
+    public void deleteModule(@PathVariable UUID id) {
+        mainModuleService.deleteModule(id);
+    }
+
+    @DeleteMapping("/micro-modules/{microModuleId}")
+    public void deleteMicroModule(@PathVariable UUID microModuleId) {
+        mainModuleService.deleteMicroModule(microModuleId);
     }
 }
 

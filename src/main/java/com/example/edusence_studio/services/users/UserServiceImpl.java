@@ -11,7 +11,7 @@ import com.example.edusence_studio.repositories.users.TrainingProfessionalProfil
 import com.example.edusence_studio.repositories.users.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.apache.coyote.BadRequestException;
+import com.example.edusence_studio.exceptions.BadRequestException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
