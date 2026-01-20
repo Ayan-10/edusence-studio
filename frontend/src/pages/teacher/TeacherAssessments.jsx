@@ -7,7 +7,7 @@ import { assessmentService } from '../../services/assessmentService';
 import { feedbackCycleService } from '../../services/feedbackCycleService';
 import { groupService } from '../../services/groupService';
 import { useAuth } from '../../context/AuthContext';
-import { Calendar, FileText } from 'lucide-react';
+import { Calendar, FileText, CheckCircle } from 'lucide-react';
 
 const TeacherAssessments = () => {
   const { user } = useAuth();
@@ -18,6 +18,7 @@ const TeacherAssessments = () => {
   const [teacherGroupIds, setTeacherGroupIds] = useState(new Set());
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [completedAssessments, setCompletedAssessments] = useState(new Set());
 
   useEffect(() => {
     fetchActiveCycles();
@@ -26,6 +27,12 @@ const TeacherAssessments = () => {
   useEffect(() => {
     fetchTeacherGroups();
   }, [user]);
+
+  useEffect(() => {
+    if (user?.id && cycles.length > 0) {
+      checkCompletedAssessments();
+    }
+  }, [user, cycles]);
 
   const fetchActiveCycles = async () => {
     try {
@@ -48,8 +55,60 @@ const TeacherAssessments = () => {
     }
   };
 
-  const handleTakeAssessment = async (assessmentId) => {
+  const checkCompletedAssessments = async () => {
+    if (!user?.id) return;
+    
+    const completedSet = new Set();
     try {
+      // Check completion status for all eligible assessments
+      for (const cycle of cycles) {
+        const eligibleAssessments = cycle.assessments?.filter((assessment) => {
+          const targetType = assessment.assignmentTargetType || 'ALL';
+          if (targetType === 'ALL') return true;
+          if (targetType === 'TEACHER') {
+            return assessment.assignmentTargetId === user.id;
+          }
+          if (targetType === 'GROUP') {
+            return teacherGroupIds.has(assessment.assignmentTargetId);
+          }
+          return false;
+        }) || [];
+
+        for (const assessment of eligibleAssessments) {
+          try {
+            const completed = await assessmentService.checkAssessmentCompletion(user.id, assessment.id);
+            if (completed) {
+              completedSet.add(assessment.id);
+            }
+          } catch (error) {
+            console.error(`Error checking completion for assessment ${assessment.id}:`, error);
+          }
+        }
+      }
+      setCompletedAssessments(completedSet);
+    } catch (error) {
+      console.error('Error checking completed assessments:', error);
+    }
+  };
+
+  const handleTakeAssessment = async (assessmentId) => {
+    // Check if assessment is already completed
+    if (completedAssessments.has(assessmentId)) {
+      alert('You have already completed this assessment.');
+      return;
+    }
+
+    try {
+      // Double-check completion status
+      if (user?.id) {
+        const isCompleted = await assessmentService.checkAssessmentCompletion(user.id, assessmentId);
+        if (isCompleted) {
+          setCompletedAssessments(prev => new Set([...prev, assessmentId]));
+          alert('You have already completed this assessment.');
+          return;
+        }
+      }
+
       const questionsData = await assessmentService.getAssessmentQuestions(assessmentId);
       if (!questionsData || questionsData.length === 0) {
         alert('No questions found for this assessment. Please contact the administrator.');
@@ -88,9 +147,15 @@ const TeacherAssessments = () => {
         }
       }
       alert('Assessment submitted successfully!');
+      // Mark assessment as completed
+      if (selectedAssessment) {
+        setCompletedAssessments(prev => new Set([...prev, selectedAssessment]));
+      }
       setSelectedAssessment(null);
       setQuestions([]);
       setResponses({});
+      // Refresh cycles to update UI
+      await fetchActiveCycles();
     } catch (error) {
       console.error('Error submitting assessment:', error);
       alert('Failed to submit assessment. Please try again.');
@@ -218,15 +283,28 @@ const TeacherAssessments = () => {
 
                 {eligibleAssessments.length > 0 ? (
                   <div className="mt-4 space-y-2">
-                    {eligibleAssessments.map((assessment) => (
-                      <Button
-                        key={assessment.id}
-                        onClick={() => handleTakeAssessment(assessment.id)}
-                        className="w-full"
-                      >
-                        Take Assessment: {assessment.title}
-                      </Button>
-                    ))}
+                    {eligibleAssessments.map((assessment) => {
+                      const isCompleted = completedAssessments.has(assessment.id);
+                      return (
+                        <div key={assessment.id} className="flex items-center gap-2">
+                          <Button
+                            onClick={() => handleTakeAssessment(assessment.id)}
+                            className="flex-1"
+                            disabled={isCompleted}
+                            variant={isCompleted ? "outline" : "primary"}
+                          >
+                            {isCompleted ? (
+                              <>
+                                <CheckCircle className="h-4 w-4 mr-2" />
+                                Completed: {assessment.title}
+                              </>
+                            ) : (
+                              `Take Assessment: ${assessment.title}`
+                            )}
+                          </Button>
+                        </div>
+                      );
+                    })}
                   </div>
                 ) : (
                   <p className="mt-4 text-sm text-gray-500">

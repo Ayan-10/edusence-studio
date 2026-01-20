@@ -29,8 +29,7 @@ dependencies {
 //	implementation 'org.springframework.boot:spring-boot-starter-security'
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
-	implementation(platform("software.amazon.awssdk:bom:2.27.21"))
-	implementation 'software.amazon.awssdk:s3'
+	// Using Supabase Storage via REST API (no SDK needed, avoids SSL issues)
 	implementation 'org.apache.pdfbox:pdfbox:2.0.29'
 	implementation 'org.apache.pdfbox:pdfbox-tools:2.0.29'
 	compileOnly 'org.projectlombok:lombok'

@@ -9,7 +9,7 @@ import { groupService } from '../../services/groupService';
 import { userService } from '../../services/userService';
 import { problemTagService } from '../../services/problemTagService';
 import { useAuth } from '../../context/AuthContext';
-import { Upload, Sparkles, Users, BookOpen, Loader2, Trash2, Settings, Plus, X } from 'lucide-react';
+import { Upload, Sparkles, Users, BookOpen, Loader2, Trash2, Settings, Plus, X, Download } from 'lucide-react';
 
 const ProfessionalModules = () => {
   const { user } = useAuth();
@@ -354,7 +354,7 @@ const ProfessionalModules = () => {
                   <div className="w-full bg-gray-200 rounded-full h-2">
                     <div className="bg-primary-600 h-2 rounded-full animate-pulse" style={{ width: '60%' }}></div>
                   </div>
-                  <p className="text-sm text-gray-600 mt-2">Uploading PDF to S3... This may take a moment for large files.</p>
+                  <p className="text-sm text-gray-600 mt-2">Uploading PDF to Supabase Storage... This may take a moment for large files.</p>
                 </div>
               )}
             </form>
@@ -569,6 +569,18 @@ const ProfessionalModules = () => {
                             </div>
                           </div>
                           <div className="flex flex-col sm:flex-row gap-2 items-start sm:items-center">
+                            {micro.fileUrl && (
+                              <a
+                                href={micro.fileUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-primary-600 hover:text-primary-700 hover:bg-primary-50 border border-primary-300 rounded px-3 py-1 text-sm font-medium transition-colors flex items-center gap-1"
+                                title="Download PDF"
+                              >
+                                <Download className="h-3 w-3" />
+                                Download
+                              </a>
+                            )}
                             <select
                               onChange={(e) => {
                                 if (e.target.value) {

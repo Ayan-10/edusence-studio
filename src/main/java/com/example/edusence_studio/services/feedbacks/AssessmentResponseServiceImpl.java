@@ -9,7 +9,10 @@ import com.example.edusence_studio.repositories.users.TeacherProfileRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -40,6 +43,32 @@ public class AssessmentResponseServiceImpl
         responseRepo.save(response);
 
         // 🔮 FUTURE: publish event to analytics system
+    }
+
+    @Override
+    public boolean hasTeacherCompletedAssessment(UUID teacherId, UUID assessmentId) {
+        TeacherProfile teacher = resolveTeacherProfile(teacherId);
+        
+        // Get all questions for this assessment
+        List<AssessmentQuestion> questions = questionRepo.findByAssessmentId(assessmentId);
+        if (questions.isEmpty()) {
+            return false;
+        }
+        
+        // Get all responses from this teacher for this assessment
+        List<AssessmentResponse> responses = responseRepo.findByTeacherIdAndAssessmentId(teacher.getId(), assessmentId);
+        
+        // Get set of question IDs that have been answered
+        Set<UUID> answeredQuestionIds = responses.stream()
+                .map(r -> r.getQuestion().getId())
+                .collect(Collectors.toSet());
+        
+        // Check if all questions have been answered
+        Set<UUID> allQuestionIds = questions.stream()
+                .map(AssessmentQuestion::getId)
+                .collect(Collectors.toSet());
+        
+        return answeredQuestionIds.containsAll(allQuestionIds);
     }
 
     private TeacherProfile resolveTeacherProfile(UUID teacherIdOrUserId) {

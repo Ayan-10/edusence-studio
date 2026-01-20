@@ -31,7 +31,7 @@ public class MainModuleServiceImpl implements MainModuleService {
     private final MicroModuleAssignmentRepository microModuleAssignmentRepository;
     private final TeacherMicroModuleProgressRepository teacherMicroModuleProgressRepository;
     private final UserRepository userRepository;
-    private final S3Service s3Service;
+    private final SupabaseStorageService storageService;
     private final AIService aiService;
     private final PDFGeneratorService pdfGeneratorService;
 
@@ -46,12 +46,12 @@ public class MainModuleServiceImpl implements MainModuleService {
         User user = userRepository.findById(uploadedByUserId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        String s3Url = s3Service.uploadPdf(file, "main-modules");
+        String storageUrl = storageService.uploadPdf(file, "main-modules");
 
         MainModule module = new MainModule();
         module.setTitle(title);
         module.setDescription(description);
-        module.setFileUrl(s3Url);
+        module.setFileUrl(storageUrl);
         module.setUploadedBy(user);
 
 
@@ -72,7 +72,7 @@ public class MainModuleServiceImpl implements MainModuleService {
         for (CreateMicroModuleRequest req : requests) {
 
             // Placeholder: pretend we generated a smaller PDF
-            String microPdfUrl = s3Service.uploadPdf(
+            String microPdfUrl = storageService.uploadPdf(
                     req.microModulePdf(),
                     "micro-modules"
             );
@@ -98,9 +98,9 @@ public class MainModuleServiceImpl implements MainModuleService {
             log.info("Starting AI-powered module splitting for module: {}", mainModuleId);
             log.info("Problem areas: {}, Number of modules: {}", problemAreas, numberOfModules);
 
-            // Step 1: Download PDF from S3 and extract text
-            log.info("Downloading PDF from S3...");
-            byte[] pdfBytes = s3Service.downloadPdf(mainModule.getFileUrl());
+            // Step 1: Download PDF from Supabase Storage and extract text
+            log.info("Downloading PDF from Supabase Storage...");
+            byte[] pdfBytes = storageService.downloadPdf(mainModule.getFileUrl());
             String extractedText = aiService.extractTextFromPdf(pdfBytes);
             log.info("Extracted {} characters from PDF", extractedText.length());
 
@@ -122,16 +122,16 @@ public class MainModuleServiceImpl implements MainModuleService {
                 log.info("Generating PDF for module: {}", title);
                 byte[] pdfBytesForModule = pdfGeneratorService.generatePdfFromText(title, content);
 
-                // Upload to S3
+                // Upload to Supabase Storage
                 String filename = problemTag.toLowerCase() + "_" + languageCode.toLowerCase() + "_" + UUID.randomUUID() + ".pdf";
-                String s3Url = s3Service.uploadPdfBytes(pdfBytesForModule, "micro-modules", filename);
+                String storageUrl = storageService.uploadPdfBytes(pdfBytesForModule, "micro-modules", filename);
 
                 // Create MicroModule entity
                 MicroModule micro = new MicroModule();
                 micro.setTitle(title + " (" + languageCode + ")");
                 micro.setLanguageCode(languageCode);
                 micro.setFocusProblemTag(problemTag);
-                micro.setFileUrl(s3Url);
+                micro.setFileUrl(storageUrl);
                 micro.setMainModule(mainModule);
 
                 result.add(micro);

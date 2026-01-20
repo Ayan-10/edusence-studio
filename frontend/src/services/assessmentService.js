@@ -42,4 +42,9 @@ export const assessmentService = {
   deleteQuestion: async (questionId) => {
     await api.delete(`/assessments/questions/${questionId}`);
   },
+
+  checkAssessmentCompletion: async (teacherId, assessmentId) => {
+    const response = await api.get(`/assessment-responses/teacher/${teacherId}/assessment/${assessmentId}/completed`);
+    return response.data.completed;
+  },
 };

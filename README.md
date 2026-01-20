@@ -19,7 +19,7 @@ Edusence Studio provides:
 ### Backend
 - **Framework**: Spring Boot (Java 17)
 - **Database**: PostgreSQL
-- **Storage**: AWS S3 (for module PDFs)
+- **Storage**: Supabase Storage (for module PDFs - 1GB free, 50MB per file)
 - **API**: RESTful APIs with JWT authentication (placeholder)
 
 ### Frontend
@@ -50,11 +50,15 @@ Prerequisite: Docker + Docker Compose (Install Docker Desktop)
    - `POSTGRES_USER` - PostgreSQL username
    - `POSTGRES_PASSWORD` - PostgreSQL password
 
-   **AWS S3 Configuration (required for PDF uploads):**
-   - `AWS_S3_REGION` - AWS S3 region (e.g., eu-north-1, us-east-1)
-   - `AWS_S3_BUCKET` - AWS S3 bucket name
-   - `AWS_S3_ACCESS_KEY` - AWS access key ID
-   - `AWS_S3_SECRET_KEY` - AWS secret access key
+   **Supabase Storage Configuration (required for PDF uploads):**
+   - `SUPABASE_URL` - Your Supabase project URL (e.g., https://xxxxx.supabase.co)
+   - `SUPABASE_SERVICE_KEY` - Your Supabase service role key (from Settings > API)
+   - `SUPABASE_BUCKET` - Storage bucket name (default: "pdfs")
+   
+   **Note:** Supabase offers a free tier with 1GB storage and 50MB per file - perfect for hackathon demos! 
+   - Sign up at: https://supabase.com
+   - Create a storage bucket named "pdfs" (or update SUPABASE_BUCKET)
+   - Make the bucket public for easy access, or keep it private and use service key
 
    **Google Gemini API (optional, for AI module splitting):**
    - `GEMINI_API_KEY` - Get your free API key from: https://makersuite.google.com/app/apikey
@@ -72,7 +76,7 @@ That is the only command needed. No Java, Node, or other tools are required.
 - Frontend: `http://localhost:5173`
 - Backend API: `http://localhost:8080/api/v1`
 
-**Security Note:** All sensitive information (database credentials, AWS keys, API keys) must be stored in the `.env` file, which is automatically gitignored. Never commit the `.env` file to version control.
+**Security Note:** All sensitive information (database credentials, Supabase keys, API keys) must be stored in the `.env` file, which is automatically gitignored. Never commit the `.env` file to version control.
 
 ### Local Development (Optional)
 
