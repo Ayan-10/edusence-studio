@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: edusence-frontend
+  labels:
+    app: edusence-frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: edusence-frontend
+  template:
+    metadata:
+      labels:
+        app: edusence-frontend
+    spec:
+      imagePullSecrets:
+        - name: ghcr-secret
+      containers:
+        - name: edusence-frontend
+          image: ghcr.io/dheenaoo7/edusence-frontend:latest
+          ports:
+            - containerPort: 80
+          env:
+            - name: BACKEND_HOST
+              value: edusence-backend

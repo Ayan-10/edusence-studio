@@ -35,6 +35,8 @@ services:
       dockerfile: frontend/Dockerfile
       args:
         VITE_API_BASE_URL: /api/v1
+    environment:
+      BACKEND_HOST: backend
     depends_on:
       - backend
     ports:
