@@ -2,6 +2,8 @@ package com.example.edusence_studio.models.groups;
 
 import com.example.edusence_studio.models.BaseEntity;
 import com.example.edusence_studio.models.users.User;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -13,6 +15,7 @@ import java.util.Set;
 @Getter
 @Setter
 @Table(name = "groups")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Group extends BaseEntity {
 
     @Column(nullable = false)
@@ -36,5 +39,6 @@ public class Group extends BaseEntity {
     private User createdBy;
 
     @OneToMany(mappedBy = "group", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
     private Set<GroupMember> teachers = new HashSet<>();
 }
