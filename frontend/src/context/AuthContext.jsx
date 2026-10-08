@@ -16,8 +16,8 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    const storedToken = localStorage.getItem('token');
+    const storedUser = sessionStorage.getItem('user');
+    const storedToken = sessionStorage.getItem('token');
     if (storedUser && storedToken) {
       setUser(JSON.parse(storedUser));
     }
@@ -27,14 +27,14 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     try {
       const response = await authService.login(email, password);
-      localStorage.setItem('token', response.token);
+      sessionStorage.setItem('token', response.token);
       const userData = {
         id: response.userId,
         name: response.name,
         email: response.email,
         role: response.role,
       };
-      localStorage.setItem('user', JSON.stringify(userData));
+      sessionStorage.setItem('user', JSON.stringify(userData));
       setUser(userData);
       return response;
     } catch (error) {

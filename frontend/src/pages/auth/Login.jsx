@@ -18,11 +18,11 @@ const Login = () => {
     setLoading(true);
 
     try {
-      await login(email, password);
-      const user = JSON.parse(localStorage.getItem('user'));
-      if (user.role === 'TEACHER') {
+      const response = await login(email, password);
+      const userRole = response.role;
+      if (userRole === 'TEACHER') {
         navigate('/teacher/dashboard');
-      } else if (user.role === 'TRAINING_PROFESSIONAL') {
+      } else if (userRole === 'TRAINING_PROFESSIONAL') {
         navigate('/professional/dashboard');
       } else {
         navigate('/dashboard');
